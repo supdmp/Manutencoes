@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Gerenciador de Manutenções</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .login-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            max-width: 900px;
+            width: 100%;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .login-left {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 60px 40px;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .login-left h1 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .login-left p {
+            font-size: 1.1rem;
+            opacity: 0.95;
+            line-height: 1.6;
+        }
+
+        .login-icon {
+            font-size: 6rem;
+            margin-bottom: 30px;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0px);
+            }
+
+            50% {
+                transform: translateY(-20px);
+            }
+        }
+
+        .login-right {
+            padding: 60px 40px;
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .login-header h2 {
+            font-size: 2rem;
+            color: #202124;
+            margin-bottom: 10px;
+        }
+
+        .login-header p {
+            color: #5f6368;
+            font-size: 0.95rem;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #202124;
+            font-size: 0.95rem;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #dadce0;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #6c63ff;
+            box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.1);
+        }
+
+        .password-container {
+            position: relative;
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            font-size: 1.2rem;
+            color: #5f6368;
+            user-select: none;
+        }
+
+        .toggle-password:hover {
+            color: #6c63ff;
+        }
+
+        .remember-forgot {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .remember-me {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            color: #5f6368;
+        }
+
+        .remember-me input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .forgot-password {
+            font-size: 0.9rem;
+            color: #6c63ff;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .forgot-password:hover {
+            color: #5a52d5;
+            text-decoration: underline;
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(108, 99, 255, 0.3);
+        }
+
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(108, 99, 255, 0.4);
+        }
+
+        .btn-login:active {
+            transform: translateY(0);
+        }
+
+        .divider {
+            text-align: center;
+            margin: 30px 0;
+            position: relative;
+        }
+
+        .divider::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            width: 100%;
+            height: 1px;
+            background: #dadce0;
+        }
+
+        .divider span {
+            background: white;
+            padding: 0 15px;
+            position: relative;
+            color: #5f6368;
+            font-size: 0.9rem;
+        }
+
+        .guest-access {
+            text-align: center;
+        }
+
+        .btn-guest {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            background: white;
+            color: #6c63ff;
+            border: 2px solid #6c63ff;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+        }
+
+        .btn-guest:hover {
+            background: #6c63ff;
+            color: white;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #DC3545;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+            font-size: 0.9rem;
+            border-left: 4px solid #DC3545;
+        }
+
+        .success-message {
+            background: #d4edda;
+            color: #28A745;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+            font-size: 0.9rem;
+            border-left: 4px solid #28A745;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .login-container {
+                grid-template-columns: 1fr;
+                max-width: 450px;
+            }
+
+            .login-left {
+                padding: 40px 30px;
+            }
+
+            .login-left h1 {
+                font-size: 2rem;
+            }
+
+            .login-icon {
+                font-size: 4rem;
+            }
+
+            .login-right {
+                padding: 40px 30px;
+            }
+
+            .login-header h2 {
+                font-size: 1.6rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="login-container">
+        <!-- Lado Esquerdo -->
+        <div class="login-left">
+            <div class="login-icon">📋</div>
+            <h1>Bem-vindo!</h1>
+            <p>Sistema de Gerenciamento de Manutenções</p>
+            <p style="margin-top: 15px; font-size: 0.95rem; opacity: 0.85;">
+                Controle suas manutenções de forma simples e eficiente
+            </p>
+        </div>
+
+        <!-- Lado Direito - Formulário -->
+        <div class="login-right">
+            <div class="login-header">
+                <h2>Login</h2>
+                <p>Entre com suas credenciais para acessar o sistema</p>
+            </div>
+
+            <div id="errorMessage" class="error-message"></div>
+            <div id="successMessage" class="success-message"></div>
+
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="username">Usuário</label>
+                    <input type="text" id="username" name="username" placeholder="Digite seu usuário"
+                        autocomplete="username" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Senha</label>
+                    <div class="password-container">
+                        <input type="password" id="password" name="password" placeholder="Digite sua senha"
+                            autocomplete="current-password" required>
+                        <span class="toggle-password" onclick="togglePassword()">👁️</span>
+                    </div>
+                </div>
+
+                <div style="text-align: right; margin-bottom: 25px;">
+                    <a href="alterar-senha.html" class="forgot-password">
+                        Alterar senha
+                    </a>
+                </div>
+
+                <button type="submit" class="btn-login">Entrar</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="config.js"></script>
+    <script src="script.js"></script>
+    <script>
+        let usuariosData = [];
+
+        // Carregar usuários ao iniciar
+        window.addEventListener('DOMContentLoaded', async function () {
+            try {
+                console.log('Carregando usuários da API...');
+                usuariosData = await fetchSheet(CONFIG.SHEETS.USUARIOS);
+                console.log('Usuários carregados:', usuariosData.length);
+
+                // Verificar se já está logado
+                verificarSeJaLogado();
+            } catch (error) {
+                console.error('Erro ao carregar usuários:', error);
+                showError('Erro ao conectar com o servidor. Tente novamente mais tarde.');
+            }
+        });
+
+        // Função auxiliar para fazer requisições GET à API
+        async function fetchSheet(sheetName) {
+            try {
+                const url = `${CONFIG.API_URL}?sheet=${encodeURIComponent(sheetName)}`;
+                console.log('GET - Carregando planilha:', sheetName);
+                console.log('URL:', url);
+
+                const response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                console.log('Dados recebidos de', sheetName, ':', data.length, 'registros');
+
+                return data;
+            } catch (error) {
+                console.error('Erro ao carregar planilha:', sheetName, error);
+                throw error;
+            }
+        }
+
+        // Toggle mostrar/esconder senha
+        function togglePassword() {
+            const passwordInput = document.getElementById('password');
+            const toggleIcon = document.querySelector('.toggle-password');
+
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleIcon.textContent = '🙈';
+            } else {
+                passwordInput.type = 'password';
+                toggleIcon.textContent = '👁️';
+            }
+        }
+
+        // Função de login
+        document.getElementById('loginForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value.trim();
+
+            // Limpar mensagens anteriores
+            hideMessages();
+
+            // Validar credenciais com a API
+            const usuario = usuariosData.find(u =>
+                (u.Email.toLowerCase() === username.toLowerCase()) &&
+                String(u.Senha) === password
+            );
+
+            if (usuario) {
+                // Login bem-sucedido
+                showSuccess('Login realizado com sucesso! Redirecionando...');
+
+                // Salvar sessão (sempre no sessionStorage)
+                const userData = {
+                    nome: usuario.Nome,
+                    email: usuario.Email,
+                    id: usuario.Id,
+                    perfil: usuario.Perfil || usuario.perfil || 'Técnico' // Default para evitar bloqueio indevido se a coluna não existir
+                };
+
+                sessionStorage.setItem('loggedUser', usuario.Nome);
+                sessionStorage.setItem('userData', JSON.stringify(userData));
+
+                // Redirecionar após 1 segundo
+                setTimeout(function () {
+                    window.location.href = 'index.html';
+                }, 1000);
+
+            } else {
+                // Login falhou
+                showError('Usuário ou senha incorretos. Tente novamente.');
+
+                // Limpar campo de senha
+                document.getElementById('password').value = '';
+                document.getElementById('password').focus();
+            }
+        });
+
+        // Mostrar mensagem de erro
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+        }
+
+        // Mostrar mensagem de sucesso
+        function showSuccess(message) {
+            const successDiv = document.getElementById('successMessage');
+            successDiv.textContent = message;
+            successDiv.style.display = 'block';
+        }
+
+        // Esconder mensagens
+        function hideMessages() {
+            document.getElementById('errorMessage').style.display = 'none';
+            document.getElementById('successMessage').style.display = 'none';
+        }
+
+        // Verificar se já está logado ao carregar a página
+        function verificarSeJaLogado() {
+            const loggedUser = localStorage.getItem('loggedUser') || sessionStorage.getItem('loggedUser');
+
+            if (loggedUser) {
+                showSuccess('Você já está logado! Redirecionando...');
+                setTimeout(function () {
+                    window.location.href = 'index.html';
+                }, 1500);
+            }
+        }
+
+        // Enter no campo de usuário vai para senha
+        document.getElementById('username').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                document.getElementById('password').focus();
+            }
+        });
+    </script>
+</body>
+
+</html>

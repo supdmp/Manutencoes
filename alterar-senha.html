@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alterar Senha - Gerenciador de Manutenções</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .change-password-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+            max-width: 500px;
+            width: 100%;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 40px;
+            text-align: center;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.95;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #202124;
+            font-size: 0.95rem;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #dadce0;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #6c63ff;
+            box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.1);
+        }
+
+        .password-container {
+            position: relative;
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            font-size: 1.2rem;
+            color: #5f6368;
+            user-select: none;
+        }
+
+        .toggle-password:hover {
+            color: #6c63ff;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(108, 99, 255, 0.3);
+            margin-bottom: 15px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(108, 99, 255, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #6c63ff;
+            border: 2px solid #6c63ff;
+            box-shadow: none;
+        }
+
+        .btn-secondary:hover {
+            background: #f5f5ff;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #DC3545;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+            font-size: 0.9rem;
+            border-left: 4px solid #DC3545;
+        }
+
+        .success-message {
+            background: #d4edda;
+            color: #28A745;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+            font-size: 0.9rem;
+            border-left: 4px solid #28A745;
+        }
+
+        .info-box {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+        }
+
+        .password-requirements {
+            font-size: 0.85rem;
+            color: #5f6368;
+            margin-top: 5px;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.6rem;
+            }
+
+            .content {
+                padding: 30px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="change-password-container">
+        <div class="header">
+            <h1>🔐 Alterar Senha</h1>
+            <p>Atualize sua senha de acesso</p>
+        </div>
+
+        <div class="content">
+            <div id="errorMessage" class="error-message"></div>
+            <div id="successMessage" class="success-message"></div>
+
+            <form id="changePasswordForm">
+                <div class="form-group">
+                    <label for="username">Usuário ou Email</label>
+                    <input 
+                        type="text" 
+                        id="username" 
+                        name="username" 
+                        placeholder="Digite seu usuário ou email"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="currentPassword">Senha Atual</label>
+                    <div class="password-container">
+                        <input 
+                            type="password" 
+                            id="currentPassword" 
+                            name="currentPassword" 
+                            placeholder="Digite sua senha atual"
+                            required
+                        >
+                        <span class="toggle-password" onclick="togglePassword('currentPassword')">👁️</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="newPassword">Nova Senha</label>
+                    <div class="password-container">
+                        <input 
+                            type="password" 
+                            id="newPassword" 
+                            name="newPassword" 
+                            placeholder="Digite sua nova senha"
+                            required
+                            minlength="3"
+                        >
+                        <span class="toggle-password" onclick="togglePassword('newPassword')">👁️</span>
+                    </div>
+                    <div class="password-requirements">
+                        Mínimo de 3 caracteres
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="confirmPassword">Confirmar Nova Senha</label>
+                    <div class="password-container">
+                        <input 
+                            type="password" 
+                            id="confirmPassword" 
+                            name="confirmPassword" 
+                            placeholder="Digite novamente a nova senha"
+                            required
+                            minlength="3"
+                        >
+                        <span class="toggle-password" onclick="togglePassword('confirmPassword')">👁️</span>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn">Alterar Senha</button>
+                <button type="button" class="btn btn-secondary" onclick="window.location.href='login.html'">
+                    Voltar ao Login
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script src="config.js"></script>
+    <script src="script.js"></script>
+    <script>
+        // Função para atualizar senha (POST)
+        async function atualizarSenha(email, novaSenha) {
+            try {
+                const url = CONFIG.API_URL;
+                console.log('POST - Atualizando senha do usuário:', email);
+                console.log('URL:', url);
+                
+                const payload = {
+                    sheet: 'Usuarios',
+                    action: 'updatePassword',
+                    Email: email,
+                    Senha: novaSenha
+                };
+                
+                console.log('Payload:', JSON.stringify(payload));
+                
+                const response = await fetch(url, {
+                    method: 'POST',
+                    mode: 'cors',
+                    redirect: 'follow',
+                    headers: {
+                        'Content-Type': 'text/plain;charset=utf-8'
+                    },
+                    body: JSON.stringify(payload)
+                });
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('Erro na resposta:', errorText);
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const result = await response.json();
+                console.log('Senha atualizada:', result);
+                
+                if (result.error) {
+                    throw new Error(result.message || 'Erro ao atualizar senha');
+                }
+                
+                return result;
+            } catch (error) {
+                console.error('Erro ao atualizar senha:', error);
+                throw error;
+            }
+        }
+        
+        let usuariosData = [];
+        
+        // Carregar usuários ao iniciar
+        window.addEventListener('DOMContentLoaded', async function() {
+            try {
+                console.log('Carregando usuários...');
+                usuariosData = await fetchSheet(CONFIG.SHEETS.USUARIOS);
+                console.log('Usuários carregados:', usuariosData.length);
+            } catch (error) {
+                console.error('Erro ao carregar usuários:', error);
+                showError('Erro ao conectar com o servidor. Tente novamente mais tarde.');
+            }
+        });
+        
+        // Toggle mostrar/esconder senha
+        function togglePassword(fieldId) {
+            const passwordInput = document.getElementById(fieldId);
+            const toggleIcon = passwordInput.nextElementSibling;
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleIcon.textContent = '🙈';
+            } else {
+                passwordInput.type = 'password';
+                toggleIcon.textContent = '👁️';
+            }
+        }
+
+        // Função de alteração de senha
+        document.getElementById('changePasswordForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value.trim();
+            const currentPassword = document.getElementById('currentPassword').value.trim();
+            const newPassword = document.getElementById('newPassword').value.trim();
+            const confirmPassword = document.getElementById('confirmPassword').value.trim();
+            
+            // Limpar mensagens anteriores
+            hideMessages();
+            
+            // Validar se nova senha e confirmação são iguais
+            if (newPassword !== confirmPassword) {
+                showError('A nova senha e a confirmação não coincidem.');
+                return;
+            }
+            
+            // Validar se nova senha é diferente da atual
+            if (newPassword === currentPassword) {
+                showError('A nova senha deve ser diferente da senha atual.');
+                return;
+            }
+            
+            // Validar credenciais atuais
+            const usuario = usuariosData.find(u => 
+                (u.Email.toLowerCase() === username.toLowerCase()) && 
+                String(u.Senha) === currentPassword
+            );
+            
+            if (!usuario) {
+                showError('Usuário ou senha atual incorretos.');
+                document.getElementById('currentPassword').value = '';
+                document.getElementById('currentPassword').focus();
+                return;
+            }
+            
+            // Alterar senha via API
+            try {
+                showSuccess('Alterando senha...');
+                
+                const result = await atualizarSenha(usuario.Email, newPassword);
+                
+                if (result.success) {
+                    showSuccess('✅ Senha alterada com sucesso! Redirecionando para login...');
+                    
+                    // Limpar formulário
+                    document.getElementById('changePasswordForm').reset();
+                    
+                    // Redirecionar para login após 2 segundos
+                    setTimeout(function() {
+                        window.location.href = 'login.html';
+                    }, 2000);
+                } else {
+                    showError('Erro ao alterar senha: ' + (result.message || 'Erro desconhecido'));
+                }
+            } catch (error) {
+                console.error('Erro ao alterar senha:', error);
+                showError('Erro ao alterar senha: ' + error.message);
+            }
+        });
+
+        // Mostrar mensagem de erro
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+        }
+
+        // Mostrar mensagem de sucesso
+        function showSuccess(message) {
+            const successDiv = document.getElementById('successMessage');
+            successDiv.textContent = message;
+            successDiv.style.display = 'block';
+        }
+
+        // Esconder mensagens
+        function hideMessages() {
+            document.getElementById('errorMessage').style.display = 'none';
+            document.getElementById('successMessage').style.display = 'none';
+        }
+    </script>
+</body>
+</html>

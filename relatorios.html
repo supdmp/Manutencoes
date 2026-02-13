@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relatórios - Gerenciador de Manutenções</title>
+    <link rel="stylesheet" href="styles.css">
+    <script>
+        // Verificar autenticação ANTES de carregar a página
+        (function () {
+            const loggedUser = localStorage.getItem('loggedUser') || sessionStorage.getItem('loggedUser');
+            if (!loggedUser) {
+                window.location.href = 'login.html';
+            }
+        })();
+    </script>
+    <style>
+        .filters-container {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+
+        .filters-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .filters-grid-single {
+            display: grid;
+            grid-template-columns: 200px 150px 1fr auto;
+            gap: 20px;
+            align-items: end;
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 15px;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .filter-group label {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #202124;
+        }
+
+        .filter-group input,
+        .filter-group select {
+            padding: 12px;
+            border: 2px solid #dadce0;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .filter-group input:focus,
+        .filter-group select:focus {
+            outline: none;
+            border-color: #6c63ff;
+        }
+
+        /* Select com busca */
+        .select-search-container {
+            position: relative;
+        }
+
+        .select-search-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #dadce0;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+            cursor: pointer;
+        }
+
+        .select-search-input:focus {
+            outline: none;
+            border-color: #6c63ff;
+        }
+
+        .select-search-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 2px solid #6c63ff;
+            border-top: none;
+            border-radius: 0 0 10px 10px;
+            max-height: 250px;
+            overflow-y: auto;
+            display: none;
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .select-search-dropdown.active {
+            display: block;
+        }
+
+        .select-search-option {
+            padding: 12px;
+            cursor: pointer;
+            transition: background 0.2s;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .select-search-option:last-child {
+            border-bottom: none;
+        }
+
+        .select-search-option:hover {
+            background: #f5f5ff;
+        }
+
+        .select-search-option.selected {
+            background: #e8e6ff;
+            color: #6c63ff;
+            font-weight: 600;
+        }
+
+        .select-search-option.hidden {
+            display: none;
+        }
+
+        .filter-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+
+        .report-header {
+            background: white;
+            padding: 25px 30px;
+            border-radius: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .report-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #202124;
+        }
+
+        .report-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .report-stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .report-stat-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #6c63ff;
+            margin-bottom: 5px;
+        }
+
+        .report-stat-label {
+            font-size: 0.9rem;
+            color: #5f6368;
+            font-weight: 500;
+        }
+
+        .no-results {
+            background: white;
+            padding: 60px;
+            border-radius: 20px;
+            text-align: center;
+            color: #999;
+            font-size: 1.2rem;
+        }
+
+        .print-button {
+            background: #6c63ff;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .print-button:hover {
+            background: #5a52d5;
+            box-shadow: 0 4px 12px rgba(108, 99, 255, 0.3);
+        }
+
+        .btn-primary {
+            background: #6c63ff;
+            color: white;
+            padding: 12px 32px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary:hover {
+            background: #5a52d5;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(108, 99, 255, 0.3);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: #666;
+            padding: 12px 32px;
+            border: 2px solid #dadce0;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-outline:hover {
+            border-color: #6c63ff;
+            color: #6c63ff;
+            background: rgba(108, 99, 255, 0.05);
+        }
+
+        /* Loading Overlay */
+        .loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            z-index: 2000;
+            backdrop-filter: blur(2px);
+        }
+
+        .loading.active {
+            display: flex;
+        }
+
+        /* Error Message Area */
+        .error-results {
+            background: #fff5f5;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            color: #c53030;
+            border: 2px solid #feb2b2;
+            margin-top: 20px;
+        }
+
+        @media print {
+
+            .filters-container,
+            .report-header button,
+            header,
+            .search-bar {
+                display: none !important;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .filters-grid-single {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+
+            .main-content {
+                padding: 15px;
+            }
+
+            .filters-container {
+                padding: 20px;
+            }
+
+            .report-stats {
+                grid-template-columns: 1fr;
+            }
+
+            .filter-actions {
+                flex-direction: column;
+            }
+
+            .filter-actions button {
+                width: 100%;
+            }
+
+            .report-header {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+
+            .table-container {
+                overflow-x: scroll;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <div
+                style="display: flex; justify-content: space-between; align-items: center; max-width: 1400px; margin: 0 auto; padding: 0 20px;">
+                <div style="flex: 1;">
+                    <h1>📊 Relatórios de Manutenções</h1>
+                    <p class="subtitle">Análise detalhada por período e empresa</p>
+                </div>
+                <div style="display: flex; align-items: center; gap: 20px;">
+                    <span style="color: white; font-size: 0.95rem;">
+                        👤 Usuário: <strong id="nomeUsuario"></strong>
+                    </span>
+                    <button class="btn" onclick="logout()"
+                        style="background: rgba(255,255,255,0.2); color: white; border: 2px solid white; padding: 10px 20px; cursor: pointer; border-radius: 10px;">
+                        🚪 Sair
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <div class="main-content">
+            <div style="margin-bottom: 20px;">
+                <button class="btn btn-outline" onclick="window.location.href='index.html'"
+                    style="border: 2px solid #6c63ff; color: #6c63ff;">
+                    ← Voltar
+                </button>
+            </div>
+
+            <div class="filters-container">
+                <h2 style="margin-bottom: 20px; color: #202124;">🔍 Filtros do Relatório</h2>
+
+                <div class="filters-grid-single">
+                    <div class="filter-group">
+                        <label for="mes">Mês</label>
+                        <select id="mes" class="filter-select">
+                            <option value="01">Janeiro</option>
+                            <option value="02">Fevereiro</option>
+                            <option value="03">Março</option>
+                            <option value="04">Abril</option>
+                            <option value="05">Maio</option>
+                            <option value="06">Junho</option>
+                            <option value="07">Julho</option>
+                            <option value="08">Agosto</option>
+                            <option value="09">Setembro</option>
+                            <option value="10">Outubro</option>
+                            <option value="11">Novembro</option>
+                            <option value="12">Dezembro</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="ano">Ano</label>
+                        <select id="ano" class="filter-select">
+                            <!-- Preenchido via JavaScript -->
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="empresaBusca">Empresa</label>
+                        <div class="select-search-container">
+                            <input type="text" id="empresaBusca" class="select-search-input"
+                                placeholder="Digite para buscar empresa..." autocomplete="off">
+                            <div class="select-search-dropdown" id="empresaDropdown">
+                                <div class="select-search-option" data-value="">Todas as empresas</div>
+                            </div>
+                            <input type="hidden" id="empresaFiltro" value="">
+                        </div>
+                    </div>
+
+                    <div class="filter-buttons">
+                        <button class="btn btn-outline" onclick="limparFiltros()">Limpar Filtros</button>
+                        <button class="btn btn-primary" onclick="gerarRelatorio()">Gerar Relatório</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="resultadosArea" style="display: none;">
+                <div class="report-header">
+                    <div class="report-title" id="reportTitle">Relatório Geral</div>
+                    <button class="print-button" onclick="window.print()">
+                        🖨️ Imprimir
+                    </button>
+                </div>
+
+                <div class="report-stats">
+                    <div class="report-stat-card">
+                        <div class="report-stat-value" id="totalRegistros">0</div>
+                        <div class="report-stat-label">Total de Registros</div>
+                    </div>
+                    <div class="report-stat-card">
+                        <div class="report-stat-value" id="totalAtendidas" style="color: #28A745;">0</div>
+                        <div class="report-stat-label">Atendidas</div>
+                    </div>
+                    <div class="report-stat-card">
+                        <div class="report-stat-value" id="totalPendentes" style="color: #FD7E14;">0</div>
+                        <div class="report-stat-label">Pendentes</div>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <table id="dataTable">
+                        <thead>
+                            <tr>
+                                <th>Empresa</th>
+                                <th>CNPJ</th>
+                                <th>Atendido Por</th>
+                                <th>Data de Atendimento</th>
+                                <th>Acompanhado Por</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="noResults" class="no-results" style="display: none;">
+                <div style="font-size: 4rem; margin-bottom: 20px;">📋</div>
+                <div>Nenhum resultado encontrado para os filtros selecionados.</div>
+                <div style="font-size: 0.9rem; margin-top: 10px; color: #bbb;">
+                    Ajuste os filtros e tente novamente.
+                </div>
+            </div>
+
+            <div id="errorArea" class="error-results" style="display: none;">
+                <div style="font-size: 4rem; margin-bottom: 20px;">⚠️</div>
+                <div id="errorMessage" style="font-size: 1.2rem; font-weight: bold; margin-bottom: 10px;"></div>
+                <div style="font-size: 0.9rem; margin-top: 10px; color: #742a2a;">
+                    Verifique se a planilha do mês selecionado existe ou tente novamente mais tarde.
+                </div>
+            </div>
+
+            <div id="loadingIndicator" class="loading">
+                <div class="spinner"></div>
+                <p>Carregando dados...</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="config.js"></script>
+    <script src="script.js"></script>
+    <script>
+        // allData já é declarado no script.js
+
+
+        window.addEventListener('DOMContentLoaded', function () {
+            console.log('DOM Carregado - Iniciando...');
+            verificarAutenticacao();
+            exibirNomeUsuario();
+            definirDatasPadrao();
+            carregarDados();
+        });
+
+        function verificarAutenticacao() {
+            const loggedUser = localStorage.getItem('loggedUser') || sessionStorage.getItem('loggedUser');
+            if (!loggedUser) {
+                window.location.href = 'login.html';
+                return false;
+            }
+            return true;
+        }
+
+        function exibirNomeUsuario() {
+            const loggedUser = localStorage.getItem('loggedUser') || sessionStorage.getItem('loggedUser');
+            const nomeUsuarioElement = document.getElementById('nomeUsuario');
+
+            if (nomeUsuarioElement && loggedUser) {
+                nomeUsuarioElement.textContent = loggedUser;
+                console.log('Nome do usuário exibido:', loggedUser);
+            }
+        }
+
+        function logout() {
+            if (confirm('Tem certeza que deseja sair do sistema?')) {
+                localStorage.removeItem('loggedUser');
+                sessionStorage.removeItem('loggedUser');
+                window.location.href = 'login.html';
+            }
+        }
+
+        function definirDatasPadrao() {
+            const hoje = new Date();
+            const anoAtual = hoje.getFullYear();
+            const mesAtual = String(hoje.getMonth() + 1).padStart(2, '0');
+
+            console.log('Definindo dados padrão - Ano atual:', anoAtual, 'Mês atual:', mesAtual);
+
+            // Preencher dropdown de ano (ano atual e últimos 5 anos)
+            const anoSelect = document.getElementById('ano');
+
+            if (!anoSelect) {
+                console.error('Elemento ano não encontrado!');
+                return;
+            }
+
+            // Limpar opções existentes
+            anoSelect.innerHTML = '';
+
+            // Adicionar anos
+            for (let i = 0; i <= 5; i++) {
+                const ano = anoAtual - i;
+                const option = document.createElement('option');
+                option.value = ano;
+                option.textContent = ano;
+                anoSelect.appendChild(option);
+                console.log('Ano adicionado:', ano);
+            }
+
+            // Definir valores padrão (mês e ano atual)
+            const mesSelect = document.getElementById('mes');
+            if (mesSelect) {
+                mesSelect.value = mesAtual;
+                console.log('Mês definido:', mesAtual);
+            }
+
+            anoSelect.value = anoAtual;
+            console.log('Ano definido:', anoAtual);
+            console.log('Total de opções de ano:', anoSelect.options.length);
+        }
+
+        async function carregarDados() {
+            try {
+                console.log('Carregando lista de empresas...');
+                // Carregar empresas da planilha de empresas para o dropdown
+                const empresasData = await fetchSheet('empresas');
+                console.log('Empresas carregadas:', empresasData.length);
+
+                preencherSelectEmpresas(empresasData);
+
+            } catch (erro) {
+                console.error('Erro ao carregar:', erro);
+                alert('Erro ao carregar dados: ' + erro.message);
+            }
+        }
+
+        async function carregarDadosRelatorio(mes, ano) {
+            const loading = document.getElementById('loadingIndicator');
+            loading.classList.add('active');
+
+            try {
+                // Converter número do mês para nome
+                const nomesMeses = ['', 'janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho',
+                    'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+                const mesNome = nomesMeses[parseInt(mes)];
+                const sheetName = mesNome + '-' + ano; // Ex: "outubro-2026"
+
+                console.log('Carregando dados do relatório:', sheetName);
+
+                // Usar o novo endpoint específico
+                // Usar o endpoint da configuração
+                const url = CONFIG.API_URL + '?sheet=' + encodeURIComponent(sheetName);
+                console.log('URL:', url);
+
+                const response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                console.log('Dados recebidos:', data.length, 'registros');
+
+                allData = data;
+                return data;
+
+            } catch (erro) {
+                console.error('Erro ao carregar dados do relatório:', erro);
+                throw erro;
+            } finally {
+                loading.classList.remove('active');
+            }
+        }
+
+        function preencherSelectEmpresas(empresasData) {
+            const dropdown = document.getElementById('empresaDropdown');
+            const empresas = [...new Set(empresasData.map(e => e.Razao_Social || e['Razao Social'] || e['Razão Social'] || e['Razão_Social']).filter(e => e))].sort();
+
+            dropdown.innerHTML = '<div class="select-search-option" data-value="">Todas as empresas</div>';
+
+            empresas.forEach(empresa => {
+                const option = document.createElement('div');
+                option.className = 'select-search-option';
+                option.setAttribute('data-value', empresa);
+                option.textContent = empresa;
+                option.onclick = function () {
+                    selecionarEmpresa(empresa);
+                };
+                dropdown.appendChild(option);
+            });
+
+            configurarBuscaEmpresas();
+        }
+
+        function configurarBuscaEmpresas() {
+            const input = document.getElementById('empresaBusca');
+            const dropdown = document.getElementById('empresaDropdown');
+
+            input.addEventListener('focus', function () {
+                dropdown.classList.add('active');
+                filtrarOpcoesEmpresa();
+            });
+
+            input.addEventListener('input', filtrarOpcoesEmpresa);
+
+            document.addEventListener('click', function (e) {
+                if (!e.target.closest('.select-search-container')) {
+                    dropdown.classList.remove('active');
+                }
+            });
+
+            const primeiraOpcao = dropdown.querySelector('.select-search-option');
+            if (primeiraOpcao) {
+                primeiraOpcao.onclick = function () {
+                    selecionarEmpresa('');
+                };
+            }
+        }
+
+        function filtrarOpcoesEmpresa() {
+            const input = document.getElementById('empresaBusca');
+            const dropdown = document.getElementById('empresaDropdown');
+            const termo = input.value.toLowerCase();
+            const opcoes = dropdown.querySelectorAll('.select-search-option');
+
+            let temResultados = false;
+
+            opcoes.forEach(function (opcao) {
+                const texto = opcao.textContent.toLowerCase();
+                if (texto.includes(termo)) {
+                    opcao.classList.remove('hidden');
+                    temResultados = true;
+                } else {
+                    opcao.classList.add('hidden');
+                }
+            });
+
+            if (!temResultados && termo) {
+                dropdown.innerHTML = '<div class="select-search-option" style="color: #999; cursor: default;">Nenhuma empresa encontrada</div>';
+            }
+        }
+
+        function selecionarEmpresa(valor) {
+            const input = document.getElementById('empresaBusca');
+            const hiddenInput = document.getElementById('empresaFiltro');
+            const dropdown = document.getElementById('empresaDropdown');
+
+            hiddenInput.value = valor;
+            input.value = valor || 'Todas as empresas';
+
+            const opcoes = dropdown.querySelectorAll('.select-search-option');
+            opcoes.forEach(function (opcao) {
+                opcao.classList.remove('selected');
+                if (opcao.getAttribute('data-value') === valor) {
+                    opcao.classList.add('selected');
+                }
+            });
+
+            dropdown.classList.remove('active');
+        }
+
+        async function gerarRelatorio() {
+            const mes = document.getElementById('mes').value;
+            const ano = document.getElementById('ano').value;
+            const empresaSelecionada = document.getElementById('empresaFiltro').value;
+
+            console.log('Gerando relatório com filtros:', {
+                mes,
+                ano,
+                empresaSelecionada
+            });
+
+            if (!mes || !ano) {
+                alert('Por favor, selecione mês e ano para gerar o relatório.');
+                return;
+            }
+
+            try {
+                // Carregar dados do mês/ano selecionado
+                const dados = await carregarDadosRelatorio(mes, ano);
+
+                let dadosFiltrados = dados;
+
+                // Filtrar por empresa específica
+                if (empresaSelecionada) {
+                    dadosFiltrados = dadosFiltrados.filter(item => {
+                        const razaoSocial = item.Razao_Social || item['Razao Social'] || item['Razão Social'] || item['Razão_Social'];
+                        return razaoSocial === empresaSelecionada;
+                    });
+                    console.log('Após filtro empresa:', dadosFiltrados.length);
+                }
+
+                // Montar título
+                const nomesMeses = ['', 'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+                    'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+                const mesNome = nomesMeses[parseInt(mes)];
+
+                let titulo = 'Relatório ';
+                if (empresaSelecionada) {
+                    titulo += `- ${empresaSelecionada} `;
+                }
+                titulo += `(${mesNome}/${ano})`;
+
+                document.getElementById('reportTitle').textContent = titulo;
+
+                console.log('Dados filtrados:', dadosFiltrados.length);
+
+                if (dadosFiltrados.length === 0) {
+                    document.getElementById('resultadosArea').style.display = 'none';
+                    document.getElementById('noResults').style.display = 'block';
+                    document.getElementById('errorArea').style.display = 'none';
+                } else {
+                    document.getElementById('resultadosArea').style.display = 'block';
+                    document.getElementById('noResults').style.display = 'none';
+                    document.getElementById('errorArea').style.display = 'none';
+
+                    calcularEstatisticas(dadosFiltrados);
+                    renderizarTabela(dadosFiltrados);
+                }
+            } catch (erro) {
+                console.error('Erro ao gerar relatório:', erro);
+
+                document.getElementById('resultadosArea').style.display = 'none';
+                document.getElementById('noResults').style.display = 'none';
+                document.getElementById('errorArea').style.display = 'block';
+
+                let mensagem = 'Ocorreu um erro ao carregar os dados.';
+                if (erro.message && (erro.message.includes('404') || erro.message.includes('não encontrada'))) {
+                    mensagem = 'A planilha para o período selecionado não foi encontrada.';
+                } else {
+                    mensagem = 'Erro: ' + (erro.message || 'Erro desconhecido');
+                }
+
+                document.getElementById('errorMessage').textContent = mensagem;
+            }
+        }
+
+        function calcularEstatisticas(dados) {
+            const total = dados.length;
+            let atendidas = 0, pendentes = 0;
+
+            dados.forEach(function (item) {
+                const dataAtendimento = item.Data_De_Atendimento;
+
+                if (!dataAtendimento || dataAtendimento.trim() === '') {
+                    pendentes++;
+                } else {
+                    atendidas++;
+                }
+            });
+
+            document.getElementById('totalRegistros').textContent = total;
+            document.getElementById('totalAtendidas').textContent = atendidas;
+            document.getElementById('totalPendentes').textContent = pendentes;
+        }
+
+        function renderizarTabela(dados) {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+
+            console.log('Renderizando', dados.length, 'registros na tabela');
+
+            dados.forEach(function (item, index) {
+                // Suportar múltiplas variações de nomes de campos
+                const razaoSocial = item.Razao_Social || item['Razao Social'] || item['Razão Social'] || item['Razão_Social'] || '';
+                const cnpj = String(item.CNPJ || '');
+                const atendidoPor = item.Atendido_Por || item['Atendido Por'] || '';
+                const dataAtendimento = item.Data_De_Atendimento || item['Data De Atendimento'] || item['Data_De_Atendimento'] || '';
+                const acompanhadoPor = item.Acompanhado_Por || item['Acompanhado Por'] || '';
+
+                const status = calcularStatus(dataAtendimento);
+                const badgeStatus = gerarBadge(status);
+
+                // Debug do primeiro item
+                if (index === 0) {
+                    console.log('Primeiro item da tabela:', {
+                        razaoSocial,
+                        cnpj,
+                        atendidoPor,
+                        dataAtendimento,
+                        acompanhadoPor,
+                        status
+                    });
+                }
+
+                const tr = document.createElement('tr');
+                tr.innerHTML =
+                    '<td>' + razaoSocial + '</td>' +
+                    '<td>' + formatarCNPJ(cnpj) + '</td>' +
+                    '<td>' + atendidoPor + '</td>' +
+                    '<td>' + formatarData(dataAtendimento) + '</td>' +
+                    '<td>' + acompanhadoPor + '</td>' +
+                    '<td>' + badgeStatus + '</td>';
+
+                tbody.appendChild(tr);
+            });
+
+            console.log('Tabela renderizada com sucesso');
+        }
+
+        function limparFiltros() {
+            selecionarEmpresa('');
+            document.getElementById('resultadosArea').style.display = 'none';
+            document.getElementById('noResults').style.display = 'none';
+            definirDatasPadrao();
+        }
+
+        function calcularStatus(dataAtendimento) {
+            if (!dataAtendimento || dataAtendimento.trim() === '') {
+                return 'pendente';
+            } else {
+                return 'atendida';
+            }
+        }
+
+        function gerarBadge(status) {
+            const badges = {
+                'atendida': '<span class="status-badge status-atendida">Atendida</span>',
+                'pendente': '<span class="status-badge status-pendente">Pendente</span>',
+                'atrasada': '<span class="status-badge status-atrasada">Atrasada</span>'
+            };
+            return badges[status] || badges['pendente'];
+        }
+
+        function formatarMes(mesString) {
+            if (!mesString) return '';
+            const [ano, mes] = mesString.split('-');
+            return mes + '/' + ano;
+        }
+
+        function formatarData(dataISO) {
+            if (!dataISO) return '';
+            try {
+                const data = new Date(dataISO);
+                const dia = String(data.getDate()).padStart(2, '0');
+                const mes = String(data.getMonth() + 1).padStart(2, '0');
+                const ano = data.getFullYear();
+                return dia + '/' + mes + '/' + ano;
+            } catch (e) {
+                return '';
+            }
+        }
+
+        function formatarCNPJ(cnpj) {
+            if (!cnpj) return '';
+            const numeros = cnpj.replace(/\D/g, '');
+            if (numeros.length === 14) {
+                return numeros.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5');
+            }
+            return cnpj;
+        }
+    </script>
+</body>
+
+</html>
