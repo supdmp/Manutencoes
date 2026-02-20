@@ -360,7 +360,7 @@
             <div class="filters-container">
                 <h2 style="margin-bottom: 20px; color: #202124;">🔍 Filtros do Relatório</h2>
 
-                <div class="filters-grid-single">
+                <div class="filters-grid-single" style="grid-template-columns: 180px 130px 1fr 180px auto;">
                     <div class="filter-group">
                         <label for="mes">Mês</label>
                         <select id="mes" class="filter-select">
@@ -396,6 +396,15 @@
                             </div>
                             <input type="hidden" id="empresaFiltro" value="">
                         </div>
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="statusFiltro">Status</label>
+                        <select id="statusFiltro" class="filter-select">
+                            <option value="todas">Todas</option>
+                            <option value="atendida">Atendidas</option>
+                            <option value="pendente">Pendentes</option>
+                        </select>
                     </div>
 
                     <div class="filter-buttons">
@@ -693,11 +702,13 @@
             const mes = document.getElementById('mes').value;
             const ano = document.getElementById('ano').value;
             const empresaSelecionada = document.getElementById('empresaFiltro').value;
+            const statusSelecionado = document.getElementById('statusFiltro').value;
 
             console.log('Gerando relatório com filtros:', {
                 mes,
                 ano,
-                empresaSelecionada
+                empresaSelecionada,
+                statusSelecionado
             });
 
             if (!mes || !ano) {
@@ -720,16 +731,35 @@
                     console.log('Após filtro empresa:', dadosFiltrados.length);
                 }
 
+                // Filtrar por status
+                if (statusSelecionado !== 'todas') {
+                    dadosFiltrados = dadosFiltrados.filter(item => {
+                        const dataAtendimento = item.Data_De_Atendimento || item['Data De Atendimento'] || item['Data_De_Atendimento'] || '';
+                        const statusItem = calcularStatus(dataAtendimento);
+                        return statusItem === statusSelecionado;
+                    });
+                    console.log('Após filtro status:', dadosFiltrados.length);
+                }
+
                 // Montar título
                 const nomesMeses = ['', 'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
                     'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
                 const mesNome = nomesMeses[parseInt(mes)];
 
-                let titulo = 'Relatório ';
+                const labelsStatus = {
+                    'todas': 'Todos os Status',
+                    'atendida': 'Atendidas',
+                    'pendente': 'Pendentes'
+                };
+
+                let titulo = 'Relatório';
                 if (empresaSelecionada) {
-                    titulo += `- ${empresaSelecionada} `;
+                    titulo += ` - ${empresaSelecionada}`;
                 }
-                titulo += `(${mesNome}/${ano})`;
+                if (statusSelecionado !== 'todas') {
+                    titulo += ` [${labelsStatus[statusSelecionado]}]`;
+                }
+                titulo += ` (${mesNome}/${ano})`;
 
                 document.getElementById('reportTitle').textContent = titulo;
 
@@ -830,8 +860,10 @@
 
         function limparFiltros() {
             selecionarEmpresa('');
+            document.getElementById('statusFiltro').value = 'todas';
             document.getElementById('resultadosArea').style.display = 'none';
             document.getElementById('noResults').style.display = 'none';
+            document.getElementById('errorArea').style.display = 'none';
             definirDatasPadrao();
         }
 
